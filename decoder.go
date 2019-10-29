@@ -12,11 +12,15 @@ import (
 )
 
 type Decoder struct {
-	r io.Reader
+	r      io.Reader
+	Strict bool
 }
 
 func NewDecoder(r io.Reader) *Decoder {
-	return &Decoder{r: r}
+	return &Decoder{
+		r:      r,
+		Strict: true,
+	}
 }
 
 func (d *Decoder) Decode() (Playlist, error) {
@@ -30,7 +34,7 @@ func (d *Decoder) Decode() (Playlist, error) {
 		return nil, ErrNoHeader
 	}
 
-	p, err := decode(scanner)
+	p, err := decode(scanner, d.Strict)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +95,7 @@ func validateDate(str string) error {
 
 // decode determines the playlist type, parses common tags, and buffers
 // important lines for further processing.
-func decode(scanner *bufio.Scanner) (Playlist, error) {
+func decode(scanner *bufio.Scanner, strict bool) (Playlist, error) {
 	var pType Type
 	var version int
 	var lines []line
@@ -189,7 +193,9 @@ func decode(scanner *bufio.Scanner) (Playlist, error) {
 			}
 
 		default:
-			return nil, (*UnexpectedTagError)(&s)
+			if strict {
+				return nil, (*UnexpectedTagError)(&s)
+			}
 		}
 
 		s.num = lineNumber
