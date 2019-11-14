@@ -34,4 +34,6 @@ type GenericPlaylist struct {
 	//
 	// Start is OPTIONAL.
 	Start *Start
+
+	Version int
 }

@@ -97,7 +97,6 @@ func validateDate(str string) error {
 // important lines for further processing.
 func decode(scanner *bufio.Scanner, strict bool) (Playlist, error) {
 	var pType Type
-	var version int
 	var lines []line
 
 	var base GenericPlaylist
@@ -135,7 +134,7 @@ func decode(scanner *bufio.Scanner, strict bool) (Playlist, error) {
 				return nil, ErrBadVersionNumber
 			}
 
-			version = int(num)
+			base.Version = int(num)
 			continue
 
 		case infTag, byterangeTag, discontinuityTag, keyTag, mapTag, programDateTimeTag, daterangeTag:
@@ -204,24 +203,18 @@ func decode(scanner *bufio.Scanner, strict bool) (Playlist, error) {
 
 	switch pType {
 	case Media:
-		p, err := parseMediaPlaylist(version, lines)
+		p, err := parseMediaPlaylist(&base, lines)
 		if err != nil {
 			return nil, err
 		}
-
-		p.GenericPlaylist = base
-		p.Version = version
 
 		return p, nil
 
 	case Master:
-		p, err := parseMasterPlaylist(version, lines)
+		p, err := parseMasterPlaylist(&base, lines)
 		if err != nil {
 			return nil, err
 		}
-
-		p.GenericPlaylist = base
-		p.Version = version
 
 		return p, nil
 

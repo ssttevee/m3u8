@@ -5,9 +5,7 @@ import (
 )
 
 type MasterPlaylist struct {
-	GenericPlaylist
-
-	Version int
+	*GenericPlaylist
 
 	// RenditionMap is used to relate Media Playlists that contain alternative
 	// Renditions of the same content.
@@ -43,7 +41,7 @@ type MasterPlaylist struct {
 	SessionKeys []*Key
 }
 
-func parseMasterPlaylist(version int, lines []line) (*MasterPlaylist, error) {
+func parseMasterPlaylist(base *GenericPlaylist, lines []line) (*MasterPlaylist, error) {
 	var p MasterPlaylist
 	for i := 0; i < len(lines); i++ {
 		s, ok := lines[i].(*split)
@@ -94,7 +92,7 @@ func parseMasterPlaylist(version int, lines []line) (*MasterPlaylist, error) {
 			p.SessionData = append(p.SessionData, sde)
 
 		case sessionKeyTag:
-			key, err := parseKey(version, s.meta)
+			key, err := parseKey(base.Version, s.meta)
 			if err != nil {
 				return nil, isew(s, err)
 			}
@@ -102,6 +100,8 @@ func parseMasterPlaylist(version int, lines []line) (*MasterPlaylist, error) {
 			p.SessionKeys = append(p.SessionKeys, key)
 		}
 	}
+
+	p.GenericPlaylist = base
 
 	return &p, nil
 }
