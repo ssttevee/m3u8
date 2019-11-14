@@ -272,13 +272,13 @@ func parseAttributeList(str string) (attributes, error) {
 			attrs[name], _ = strconv.ParseFloat(matches[1], 64)
 		} else if matches = rxQuotedString.FindStringSubmatch(str[pos:]); matches != nil {
 			attrs[name] = matches[1][1 : len(matches[1])-1]
-		} else if matches = rxEnumeratedString.FindStringSubmatch(str[pos:]); matches != nil {
-			attrs[name] = enumeratedString(matches[1])
 		} else if matches = rxDecimalResolution.FindStringSubmatch(str[pos:]); matches != nil {
 			x := strings.IndexRune(matches[1], 'x')
 			w, _ := strconv.ParseUint(matches[1][:x], 10, 64)
 			h, _ := strconv.ParseUint(matches[1][x+1:], 10, 64)
 			attrs[name] = decimalResolution{w, h}
+		} else if matches = rxEnumeratedString.FindStringSubmatch(str[pos:]); matches != nil {
+			attrs[name] = enumeratedString(matches[1])
 		} else {
 			return nil, ErrBadAttrSyntax
 		}
