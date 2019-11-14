@@ -1,7 +1,8 @@
 package m3u8
 
 import (
-	"bytes"
+	"fmt"
+	"io"
 )
 
 type MasterPlaylist struct {
@@ -110,28 +111,64 @@ func (*MasterPlaylist) Type() Type {
 	return Master
 }
 
-func (p *MasterPlaylist) encode() ([]byte, error) {
-	var buf bytes.Buffer
+func (p *MasterPlaylist) encode(w io.Writer) error {
+	if _, err := fmt.Fprintln(w, headerTag); err != nil {
+		return err
+	}
+
+	if _, err := fmt.Fprintf(w, versionTag+":%d\n", p.Version); err != nil {
+		return err
+	}
 
 	if len(p.RenditionMap) > 0 {
 		if err := renditions(p.RenditionMap).validate(); err != nil {
-			return nil, err
+			return err
 		}
 
 		for _, a := range p.RenditionMap {
 			attrs, err := a.attrs()
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 			encodedAttrs, err := attrs.encode()
 			if err != nil {
-				return nil, err
+				return err
 			}
 
-			buf.WriteString(mediaTag + ":" + encodedAttrs)
+			if _, err := fmt.Fprintln(w, mediaTag+":"+encodedAttrs); err != nil {
+				return err
+			}
 		}
 	}
 
-	return buf.Bytes(), nil
+	if len(p.VariantStreams) > 0 {
+		// TODO validate variant streams
+
+		for _, stream := range p.VariantStreams {
+			attrs, err := stream.attrs()
+			if err != nil {
+				return err
+			}
+
+			encodedAttrs, err := attrs.encode()
+			if err != nil {
+				return err
+			}
+
+			if _, err := fmt.Fprintln(w, streamInfTag+":"+encodedAttrs); err != nil {
+				return err
+			}
+
+			if _, err := fmt.Fprintln(w, stream.URI); err != nil {
+				return err
+			}
+
+			if _, err := fmt.Fprintln(w); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
