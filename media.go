@@ -49,9 +49,7 @@ func ParsePlaylistType(str string) (PlaylistType, error) {
 }
 
 type MediaPlaylist struct {
-	GenericPlaylist
-
-	Version int
+	*GenericPlaylist
 
 	Segments []*MediaSegment
 
@@ -85,11 +83,11 @@ type MediaPlaylist struct {
 	IFramesOnly bool
 }
 
-func parseMediaPlaylist(version int, lines []line) (_ *MediaPlaylist, err error) {
+func parseMediaPlaylist(base *GenericPlaylist, lines []line) (_ *MediaPlaylist, err error) {
 	var p MediaPlaylist
 	var endlist bool
 	for i := 0; i < len(lines); i++ {
-		if skip, err := parseMediaSegment(&p, version, lines[i:]); err != nil && err != ErrNotASegment {
+		if skip, err := parseMediaSegment(&p, base.Version, lines[i:]); err != nil && err != ErrNotASegment {
 			return nil, err
 		} else if err == nil {
 			if endlist {
@@ -146,6 +144,8 @@ func parseMediaPlaylist(version int, lines []line) (_ *MediaPlaylist, err error)
 
 		}
 	}
+
+	p.GenericPlaylist = base
 
 	return &p, nil
 }
