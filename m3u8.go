@@ -1,6 +1,8 @@
 // Package m3u8 provides abstractions to work with Apple HLS playlist files.
 package m3u8
 
+import "io"
+
 type Type int
 
 const (
@@ -10,5 +12,5 @@ const (
 
 type Playlist interface {
 	Type() Type
-	encode() ([]byte, error)
+	encode(io.Writer) error
 }

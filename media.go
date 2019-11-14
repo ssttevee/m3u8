@@ -1,6 +1,9 @@
 package m3u8
 
-import "strconv"
+import (
+	"io"
+	"strconv"
+)
 
 type EncryptionMethod int
 
@@ -162,6 +165,6 @@ func (*MediaPlaylist) Type() Type {
 	return Media
 }
 
-func (p *MediaPlaylist) encode() ([]byte, error) {
+func (p *MediaPlaylist) encode(w io.Writer) error {
 	panic("implement me")
 }

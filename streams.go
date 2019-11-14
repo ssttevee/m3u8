@@ -114,6 +114,29 @@ func (s *Stream) applyAttributes(attrs attributes) (err error) {
 	return nil
 }
 
+func (s *Stream) attrs() (attributes, error) {
+	attrs := attributes{
+		attrBandwidth: s.Bandwidth,
+	}
+
+	if s.AverageBandwidth > 0 {
+		attrs[attrAverageBandwidth] = s.AverageBandwidth
+	}
+
+	if s.Width > 0 && s.Height > 0 {
+		attrs[attrResolution] = decimalResolution{
+			w: s.Width,
+			h: s.Height,
+		}
+	}
+
+	if len(s.Codecs) > 0 {
+		attrs[attrCodecs] = strings.Join(s.Codecs, ",")
+	}
+
+	return attrs, nil
+}
+
 // VariantStream represents a Variant Stream, which is a set of Renditions that
 // can be combined to play the presentation.
 //
@@ -137,6 +160,32 @@ type VariantStream struct {
 	//
 	// Type must be set if GroupID is set.
 	Type MediaType
+}
+
+func (s *VariantStream) attrs() (attributes, error) {
+	attrs, err := s.Stream.attrs()
+	if err != nil {
+		return nil, err
+	}
+
+	if s.FrameRate > 0 {
+		attrs[attrFrameRate] = s.FrameRate
+	}
+
+	if s.GroupID != "" {
+		switch s.Type {
+		case Audio:
+			attrs[attrAudio] = s.GroupID
+		case Video:
+			attrs[attrVideo] = s.GroupID
+		case Subtitles:
+			attrs[attrSubtitles] = s.GroupID
+		case ClosedCaptions:
+			attrs[attrClosedCaptions] = s.GroupID
+		}
+	}
+
+	return attrs, nil
 }
 
 func parseVariantStream(meta string) (*VariantStream, error) {
