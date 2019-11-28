@@ -27,31 +27,52 @@ switch plist.(type) {
 case *m3u8.MasterPlaylist:
 	fmt.Println("I am a master playlist!")
 case *m3u8.MediaPlaylist:
-	fmt.Println("I am a master playlist!")
+	fmt.Println("I am a media playlist!")
 }
 ```
 
 Parse a playlist from memory:
 
 ```
-const data = []byte(`#EXTM3U...`)
+data := []byte(`#EXTM3U...`)
 
 plist, err := m3u8.DecodePlaylist(data)
 if err != nil {
 	panic(err)
 }
 
-switch plist.Type() {
-case m3u8.Master:
+switch plist.(type) {
+case *m3u8.MasterPlaylist:
 	fmt.Println("I am a master playlist!")
-case m3u8.Media:
-	fmt.Println("I am a master playlist!")
+case *m3u8.MediaPlaylist:
+	fmt.Println("I am a media playlist!")
+}
+```
+
+Parse a playlist with extraneous tags:
+
+```
+decoder := m3u8.NewDecoder(r)
+decoder.Strict = false
+plist, err := decoder.Decode()
+if err != nil {
+	panic(err)
+}
+```
+
+Encoding a playlist:
+
+```
+var plist m3u8.Playlist
+var buf bytes.Buffer
+
+if err := m3u8.NewEncoder(&buf).Encode(plist); err != nil {
+	panic(err)
 }
 ```
 
 ## Todo
 
-* Encoding.
 * Better validation when decoding/encoding.
 * Abstractions for easier playlist manipulation.
 * More tests!
@@ -60,4 +81,4 @@ Pull requests are welcome.
 
 ## Warning
 
-This library is in no way stable yet. if you want to use it in your own program, please consider using [go modules](https://github.com/golang/go/wiki/Modules).
+This library is in no way stable yet. If you want to use it in your own program, please consider using [go modules](https://github.com/golang/go/wiki/Modules).
