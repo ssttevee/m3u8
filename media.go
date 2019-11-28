@@ -1,6 +1,7 @@
 package m3u8
 
 import (
+	"fmt"
 	"io"
 	"strconv"
 )
@@ -12,6 +13,19 @@ const (
 	AES128
 	SampleAES
 )
+
+func (m EncryptionMethod) String() string {
+	switch m {
+	case NoEncryption:
+		return "NONE"
+	case AES128:
+		return "AES-128"
+	case SampleAES:
+		return "SAMPLE-AES"
+	}
+
+	panic("invalid encryption method")
+}
 
 func ParseEncryptionMethod(str string) (EncryptionMethod, error) {
 	switch str {
@@ -33,12 +47,35 @@ type Map struct {
 	s *split
 }
 
+func (m *Map) attrs() (attributes, error) {
+	attrs := attributes{
+		attrURI: m.URI,
+	}
+
+	if m.ByteRange != nil {
+		attrs[byterangeTag] = m.ByteRange.String()
+	}
+
+	return attrs, nil
+}
+
 type PlaylistType int
 
 const (
 	Event PlaylistType = iota + 1
 	VOD
 )
+
+func (t PlaylistType) String() string {
+	switch t {
+	case Event:
+		return "EVENT"
+	case VOD:
+		return "VOD"
+	}
+
+	panic("invalid playlist type")
+}
 
 func ParsePlaylistType(str string) (PlaylistType, error) {
 	switch str {
@@ -166,5 +203,51 @@ func (*MediaPlaylist) Type() Type {
 }
 
 func (p *MediaPlaylist) encode(w io.Writer) error {
-	panic("implement me")
+	if err := p.GenericPlaylist.encode(w); err != nil {
+		return err
+	}
+
+	if _, err := fmt.Fprintf(w, targetdurationTag+":%d\n", p.TargetDuration); err != nil {
+		return err
+	}
+
+	if p.MediaSequence > 0 {
+		if _, err := fmt.Fprintf(w, mediaSequenceTag+":%d\n", p.MediaSequence); err != nil {
+			return err
+		}
+	}
+
+	if p.DiscontinuousSequence > 0 {
+		if _, err := fmt.Fprintf(w, discontinuitySequenceTag+":%d\n", p.DiscontinuousSequence); err != nil {
+			return err
+		}
+	}
+
+	if p.PlaylistType != 0 {
+		if _, err := fmt.Fprintln(w, playlistTypeTag+":"+p.PlaylistType.String()); err != nil {
+			return err
+		}
+	}
+
+	if p.IFramesOnly {
+		if _, err := fmt.Fprintln(w, iFramesOnlyTag); err != nil {
+			return err
+		}
+	}
+
+	if len(p.Segments) > 0 {
+		// TODO validate segments
+
+		for _, stream := range p.Segments {
+			if err := stream.encode(w); err != nil {
+				return err
+			}
+		}
+	}
+
+	if _, err := fmt.Fprintln(w, endlistTag); err != nil {
+		return err
+	}
+
+	return nil
 }

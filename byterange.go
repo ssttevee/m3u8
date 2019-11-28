@@ -45,3 +45,11 @@ func parseByteRange(str string) (_ *ByteRange, err error) {
 func (r ByteRange) closed() bool {
 	return r.Length > 0 && r.Start >= 0
 }
+
+func (r ByteRange) String() string {
+	if r.Start < 0 {
+		return strconv.FormatInt(r.Length, 10)
+	}
+
+	return strconv.FormatInt(r.Length, 10) + "@" + strconv.FormatInt(r.Start, 10)
+}

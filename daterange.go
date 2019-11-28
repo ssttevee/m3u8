@@ -1,6 +1,9 @@
 package m3u8
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 type DateRange struct {
 	// ID uniquely identifies a Date Range in the Playlist.
@@ -189,4 +192,51 @@ func parseDateRange(meta string) (*DateRange, error) {
 	}
 
 	return &dr, nil
+}
+
+func (r DateRange) attrs() (attributes, error) {
+	attrs := attributes{
+		attrID:        r.ID,
+		attrStartDate: r.StartDate,
+	}
+
+	if r.Class != "" {
+		attrs[attrClass] = r.Class
+	}
+
+	if r.EndDate != "" {
+		attrs[attrEndDate] = r.EndDate
+	}
+
+	if r.Duration > 0 {
+		attrs[attrDuration] = unsignedFloat(r.Duration.Seconds())
+	}
+
+	if r.PlannedDuration > 0 {
+		attrs[attrPlannedDuration] = unsignedFloat(r.PlannedDuration.Seconds())
+	}
+
+	if len(r.ClientAttributes) > 0 {
+		for name, value := range r.ClientAttributes {
+			attrs[strings.ToUpper(name)] = value
+		}
+	}
+
+	if len(r.SCTE35Command) > 0 {
+		attrs[attrSCTE35Command] = r.SCTE35Command
+	}
+
+	if len(r.SCTE35Out) > 0 {
+		attrs[attrSCTE35Out] = r.SCTE35Out
+	}
+
+	if len(r.SCTE35In) > 0 {
+		attrs[attrSCTE35In] = r.SCTE35In
+	}
+
+	if r.EndOnNext {
+		attrs[attrEndOnNext] = enumeratedString("YES")
+	}
+
+	return attrs, nil
 }
