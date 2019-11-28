@@ -1,6 +1,8 @@
 package m3u8
 
-import "strings"
+import (
+	"strings"
+)
 
 type Stream struct {
 	// URI identifies the Media Playlist file.

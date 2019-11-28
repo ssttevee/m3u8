@@ -1,6 +1,8 @@
 package m3u8
 
 import (
+	"fmt"
+	"io"
 	"strings"
 	"time"
 )
@@ -198,4 +200,82 @@ func (s *MediaSegment) hasDependableRange() bool {
 	}
 
 	return s.ByteRange.closed()
+}
+
+func (s *MediaSegment) encode(w io.Writer) error {
+	if _, err := fmt.Fprintf(w, infTag+":%g,%s\n", s.Duration.Seconds(), s.Title); err != nil {
+		return err
+	}
+
+	if s.ByteRange != nil {
+		if _, err := fmt.Fprintln(w, byterangeTag+":"+s.ByteRange.String()); err != nil {
+			return err
+		}
+	}
+
+	if s.Discontinuity {
+		if _, err := fmt.Fprintln(w, discontinuityTag); err != nil {
+			return err
+		}
+	}
+
+	if s.Key != nil {
+		attrs, err := s.Key.attrs()
+		if err != nil {
+			return err
+		}
+
+		encodedAttrs, err := attrs.encode()
+		if err != nil {
+			return err
+		}
+
+		if _, err := fmt.Fprintln(w, keyTag+":"+encodedAttrs); err != nil {
+			return err
+		}
+	}
+
+	if s.Map != nil {
+		attrs, err := s.Map.attrs()
+		if err != nil {
+			return err
+		}
+
+		encodedAttrs, err := attrs.encode()
+		if err != nil {
+			return err
+		}
+
+		if _, err := fmt.Fprintln(w, mapTag+":"+encodedAttrs); err != nil {
+			return err
+		}
+	}
+
+	if s.ProgramDateTime != "" {
+		if _, err := fmt.Fprintln(w, programDateTimeTag+":"+s.ProgramDateTime); err != nil {
+			return err
+		}
+	}
+
+	if s.DateRange != nil {
+		attrs, err := s.DateRange.attrs()
+		if err != nil {
+			return err
+		}
+
+		encodedAttrs, err := attrs.encode()
+		if err != nil {
+			return err
+		}
+
+		if _, err := fmt.Fprintln(w, daterangeTag+":"+encodedAttrs); err != nil {
+			return err
+		}
+	}
+
+	if _, err := fmt.Fprintln(w, s.URI); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -112,11 +112,7 @@ func (*MasterPlaylist) Type() Type {
 }
 
 func (p *MasterPlaylist) encode(w io.Writer) error {
-	if _, err := fmt.Fprintln(w, headerTag); err != nil {
-		return err
-	}
-
-	if _, err := fmt.Fprintf(w, versionTag+":%d\n", p.Version); err != nil {
+	if err := p.GenericPlaylist.encode(w); err != nil {
 		return err
 	}
 

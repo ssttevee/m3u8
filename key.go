@@ -98,3 +98,29 @@ func parseKey(version int, meta string) (*Key, error) {
 
 	return &k, nil
 }
+
+func (k *Key) attrs() (attributes, error) {
+	attrs := attributes{
+		attrMethod: enumeratedString(k.Method.String()),
+		attrURI:    k.URI,
+	}
+
+	if k.IV != nil {
+		attrs[attrIV] = k.IV[:]
+	}
+
+	if k.KeyFormat != "" {
+		attrs[attrKeyFormat] = k.KeyFormat
+	}
+
+	if len(k.KeyFormatVersions) > 0 {
+		var s []string
+		for _, v := range k.KeyFormatVersions {
+			s = append(s, strconv.FormatUint(uint64(v), 10))
+		}
+
+		attrs[attrKeyFormatVersions] = strings.Join(s, "/")
+	}
+
+	return attrs, nil
+}
