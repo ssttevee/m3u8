@@ -234,7 +234,7 @@ func (a attributes) resolution(name string) (w uint64, h uint64, _ error) {
 var (
 	rxAttributeName              = regexp.MustCompile(`^([A-Z0-9-]+)=`)
 	rxDecimalInteger             = regexp.MustCompile(`^(\d{1,20})(?:,|$)`)
-	rxHexadecimalSequence        = regexp.MustCompile(`^(0[xX][0-9A-F]*)(?:,|$)`)
+	rxHexadecimalSequence        = regexp.MustCompile(`^(0[xX][0-9A-Fa-f]*)(?:,|$)`)
 	rxDecimalFloatingPoint       = regexp.MustCompile(`^(\d+(?:\.\d+)?)(?:,|$)`)
 	rxSignedDecimalFloatingPoint = regexp.MustCompile(`^(-?\d+(?:\.\d+)?)(?:,|$)`)
 	rxQuotedString               = regexp.MustCompile(`^("[^\n\r"]*")(?:,|$)`)
