@@ -3,7 +3,6 @@ package m3u8
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io"
 	"regexp"
 	"strconv"
@@ -30,7 +29,6 @@ func (d *Decoder) Decode() (Playlist, error) {
 	}
 
 	if firstLine := scanner.Text(); firstLine != headerTag {
-		fmt.Println(firstLine)
 		return nil, ErrNoHeader
 	}
 
